@@ -1,126 +1,65 @@
+# Command Injection – TryHackMe
 
-Command Injection – TryHackMe
+## Overview
+This room focuses on identifying, exploiting, and mitigating command injection vulnerabilities in web applications. Command injection allows an attacker to execute arbitrary OS commands on a server, often leading to remote code execution (RCE). You’ll learn how to test for both verbose and blind injection and practice exploiting vulnerable systems.
 
-💻 Overview
+## 🧩 Key Concepts Covered
 
-This room introduces the concept of Command Injection, a critical web vulnerability that allows attackers to execute system commands on a host through a vulnerable web application. The module covers detection methods, common payloads, prevention strategies, and hands-on exploitation techniques.
+### What is Command Injection?
+- Abuse of application functionality to execute system commands.
+- Impact includes reading sensitive files, executing system-level commands, and escalating privileges.
+- Common in apps using user input within system calls (e.g., `system()`, `exec()` in PHP/Python).
 
-🧪 Key Concepts Covered
+### Application Behavior
+- Apps often use input to build system commands (e.g., grep, ls).
+- Unsanitized input can allow chaining commands via `;`, `&&`, `|`, etc.
+- Command injection = Remote Code Execution under web app privileges.
 
-What is Command Injection?
+### Types of Command Injection
+- **Verbose**: Command output is displayed in the browser (e.g., whoami, ls).
+- **Blind**: No output; success is measured via behavior (e.g., time delays with `sleep`, `ping`, or file creation).
 
-Occurs when user input is passed unsanitized into system command functions (e.g., system(), exec() in PHP, or subprocess in Python).
+### Detection Techniques
+- Try payloads like:
+  - `; whoami`
+  - `&& ls`
+  - `| sleep 5`
+  - `; ping -c 5 127.0.0.1`
+- Blind detection methods:
+  - Use of time delay commands like `sleep`, `ping`
+  - Redirecting output to files and reading them (`whoami > output.txt && cat output.txt`)
 
-The attacker executes commands with the same privileges as the application.
+### Exploitation Examples
+- **Linux Payloads**:
+  - `whoami` – Shows running user
+  - `ls` – List files
+  - `sleep 5` – Blind testing
+  - `nc` – Reverse shell
 
-Often leads to full system compromise if the application has high-level privileges.
+- **Windows Payloads**:
+  - `whoami`
+  - `dir`
+  - `timeout 5` – Simulate delay for blind detection
 
-Detection Methods
+### Prevention Techniques
+- Avoid dangerous functions like `system()`, `exec()`, `passthru()` (PHP).
+- Whitelist/validate input formats (e.g., digits only).
+- Sanitize user input and use parameterized commands.
+- Reject input containing metacharacters like `;`, `|`, `&`, `>`.
 
-Method
+### Bypassing Filters
+- Input filters can be bypassed using encoded characters or hex values.
+- Example: Use `$IFS` or hex-encoded characters in Linux to evade simple string checks.
 
-Description
+## 💻 Practical Lab Summary
+- Tested verbose and blind injection payloads in a sandboxed web app.
+- Found and exfiltrated contents of `/home/tryhackme/flag.txt` using techniques like `cat`, `;`, and file inclusion chaining.
 
-Verbose
+## 💡 Takeaways
+- Command injection is high-impact and often leads to full system compromise.
+- Always test both for output and behavioral side effects.
+- Input sanitization and minimal use of system-level commands is critical.
+- Practice with various payloads and OS differences is essential.
 
-Output from injected commands is visible on the page (e.g., whoami returns current user).
-
-Blind
-
-No visible output; attacker infers success via delays (e.g., using sleep, ping), or side-effects.
-
-Useful Payloads
-
-Linux
-
-whoami – Determine user running the app
-
-ls – List directory contents
-
-ping -c 5 127.0.0.1 – Introduce delay for blind testing
-
-sleep 5 – Force delay without ping
-
-cat /etc/passwd – Read system files
-
-nc – Spawn reverse shell
-
-Windows
-
-whoami
-
-dir
-
-ping -n 5 127.0.0.1
-
-timeout /T 5
-
-Bypassing Filters
-
-Use hexadecimal or encoded characters (e.g., \x27 instead of ')
-
-Use different shell operators: ;, &&, |, ``
-
-Use redirection: > or output to known file, then read
-
-Detection Examples
-
-curl http://target.app/?search=term;whoami
-
-For blind: curl http://target.app/?search=term;ping -c 5 127.0.0.1
-
-💡 Prevention Techniques
-
-Avoid Dangerous Functions
-
-PHP: exec(), passthru(), shell_exec()
-
-NodeJS: child_process.exec
-
-Python: os.system, subprocess
-
-Input Sanitization
-
-Accept only expected input formats (e.g., numeric-only input).
-
-Whitelisting input or using strict validation patterns (e.g., regex).
-
-Secure Code Example
-
-$input = filter_input(INPUT_POST, "id", FILTER_VALIDATE_INT);
-if ($input !== false) {
-    system("some_command $input");
-}
-
-✅ Lab Summary
-
-Lab Objective
-
-Identify a command injection point on the hosted application.
-
-Use verbose or blind payloads to execute commands.
-
-Retrieve the flag at /home/tryhackme/flag.txt.
-
-Sample Exploitation Flow
-
-Inject whoami to confirm verbose output:curl http://MACHINE_IP/?search=test;whoami
-
-Try blind injection:curl http://MACHINE_IP/?search=test;ping -c 5 127.0.0.1
-
-Retrieve flag:
-curl http://MACHINE_IP/?search=test;cat /home/tryhackme/flag.txt
-
-📅 Takeaways
-
-Command Injection is among the most critical web vulnerabilities due to direct OS access.
-
-Verbose injection is easier to detect; blind injection requires creativity.
-
-Always sanitize input and avoid direct use of shell commands with user input.
-
-Use delay-based techniques, redirection, or curl requests to test blind injection.
-
-✅ Status
-
+## ✅ Status
 Room completed.
